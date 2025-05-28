@@ -83,7 +83,7 @@ class SklearnMeasuringEstims(ProjectStep):  # type: ignore TODO: Class name etc.
             #run_cmd = workload.command.as_plumbum(project=project)
             run_cmd = workloads.command.as_plumbum(project=SklearnLKBachelor) # TODO: This or above?
             run_cmd(retcode=None)
-            cp("PATH", perf_report_agg.full_path()) # TODO: PATH = case_study_MNIST.py output file
+            cp("/home/lukas/Schreibtisch/repos/lk-bachelor-sklearn/scripts/io/mnist/cs_output/cs00_measurements.txt", perf_report_agg.full_path()) # TODO: PATH = case_study_MNIST.py output file
 
         return StepResult.OK
 
