@@ -3,7 +3,7 @@
 from varats.report.report import BaseReport
 
 
-class MyTestReport(BaseReport, shorthand="MyTest", file_type="txt"):
+class SklearnReport(BaseReport, shorthand="MyTest", file_type="txt"):
     """
     An empty report for testing.
 
