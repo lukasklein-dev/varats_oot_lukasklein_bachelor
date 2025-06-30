@@ -1,10 +1,9 @@
-"""Implements an empty experiment that just compiles the project."""
+"""Implements an experiment that measures the sklearn estimator performance."""
 
 import typing as tp
 import textwrap
 
-from varats_oot_lukasklein_bachelor.reports.sklearn_report import SklearnReport
-from varats_oot_lukasklein_bachelor.projects.sklearn import SklearnLKBachelor
+from varats_oot_lukasklein_bachelor.reports.sklearn_reports import SklearnMeasuringReports
 from benchbuild import Project
 from benchbuild.utils import actions
 from benchbuild.utils.cmd import cp
@@ -17,6 +16,7 @@ from varats.experiment.experiment_util import (
 from varats.project.varats_project import VProject
 from varats.report.report import ReportSpecification
 from varats.utils.config import get_current_config_id
+import varats.utils.config as cfg
 
 from benchbuild.utils.actions import ProjectStep, StepResult
 from benchbuild.command import cleanup
@@ -36,13 +36,12 @@ if tp.TYPE_CHECKING:
     from varats.project.varats_project import VProject
 
 
-class SklearnMeasuringEstims(ProjectStep):  # type: ignore TODO: Class name etc. anpassen an mein Experiment
-    """Step to sample call stack with perf and measure total execution using GNU
-    Time."""
+class SklearnExperiment(ProjectStep):  # type: ignore
+    """Step to call a script that measures the performance of sklearn estimators."""
 
-    NAME = "SklearnMeasuringEstims"
+    NAME = "SklearnExperiment"
     DESCRIPTION = (
-        "Sample call stack using perf and measure total execution time"
+        "Call a script that measures the performance of sklearn estimators"
     )
 
     project: "VProject"
@@ -63,9 +62,12 @@ class SklearnMeasuringEstims(ProjectStep):  # type: ignore TODO: Class name etc.
 
     def __call__(self) -> StepResult:
         # get workload to use
+        print("Hi")
         workloads = workload_commands(
-            self.project, self.project.binaries[0], [WorkloadCategory.EXAMPLE]
+            #self.project, self.project.binaries[0], [WorkloadCategory.MEDIUM]
+            self.project, self.__binary, [WorkloadCategory.MEDIUM]
         )
+
         if len(workloads) == 0:
             print(
                 f"No workload for project={self.project.name} "
@@ -75,41 +77,45 @@ class SklearnMeasuringEstims(ProjectStep):  # type: ignore TODO: Class name etc.
 
         # report paths
         perf_report_agg = create_new_success_result_filepath(
-            self.__experiment_handle, SklearnReport,
+            self.__experiment_handle, SklearnMeasuringReports,
             self.project, self.__binary, get_current_config_id(self.project)
         )
 
         with local.cwd(self.project.builddir):
-            #run_cmd = workload.command.as_plumbum(project=project)
-            run_cmd = workloads.command.as_plumbum(project=SklearnLKBachelor) # TODO: This or above?
+            #run_cmd = workloads.command.as_plumbum(project=self.project)
+            run_cmd = workloads[0].command.as_plumbum(project=self.project)
+            print(run_cmd.formulate()) # DEBUGGING
             run_cmd(retcode=None)
-            cp("/home/lukas/Schreibtisch/repos/lk-bachelor-sklearn/scripts/io/mnist/cs_output/cs00_measurements.txt", perf_report_agg.full_path()) # TODO: PATH = case_study_MNIST.py output file
+            cp("scripts/io/mnist/cs_output/perf_measurements.json", perf_report_agg.full_path())
 
         return StepResult.OK
 
     def __str__(self, indent: int = 0) -> str:
         return textwrap.indent(
-            f"* {self.project.name}: Measure with time and sample with perf ({self.__repetitions} reps)",
+            f"* {self.project.name}: Measure estimator performance ({self.__repetitions} reps)",
             " " * indent
         )
 
 
 # Please take care when changing this file, see docs experiments/just_compile
-class JustCompileTest(VersionExperiment, shorthand="JCT"):
-    """Generates empty report file."""
+class SklearnMeasuring(VersionExperiment, shorthand="SME"):
+    """Implements an experiment that measures the sklearn estimator performance."""
 
-    NAME = "JustCompileTest"
+    NAME = "SklearnMeasuring"
 
-    REPORT_SPEC = ReportSpecification(SklearnReport)
+    REPORT_SPEC = ReportSpecification(SklearnMeasuringReports)
 
     def actions_for_project(
             self, project: Project) -> tp.MutableSequence[actions.Step]:
         """Returns the specified steps to run the project(s) specified in the
         call in a fixed order."""
 
-        analysis_actions = []
-        #analysis_actions.append(EmptyAnalysis(project, self.get_handle())) # TODO: Mein Experiment callen
-        analysis_actions.append(actions.Clean(project))
-        print("Setting steps")
+        # Only consider the first/main binary
+        binary = project.binaries[0]
 
+        analysis_actions = [
+            SklearnExperiment(project, self.get_handle(), binary),
+            actions.Clean(project)
+        ]
+        
         return analysis_actions
