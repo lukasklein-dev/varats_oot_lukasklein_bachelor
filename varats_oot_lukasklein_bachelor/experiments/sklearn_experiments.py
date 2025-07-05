@@ -25,6 +25,7 @@ from varats.experiment.workload_util import (
     WorkloadCategory,
 )
 from plumbum import local
+import json
 
 from varats.experiment.experiment_util import (
     VersionExperiment,
@@ -62,10 +63,8 @@ class SklearnExperiment(ProjectStep):  # type: ignore
 
     def __call__(self) -> StepResult:
         # get workload to use
-        print("Hi")
         workloads = workload_commands(
-            #self.project, self.project.binaries[0], [WorkloadCategory.MEDIUM]
-            self.project, self.__binary, [WorkloadCategory.MEDIUM]
+            self.project, self.__binary.entry_point, [WorkloadCategory.MEDIUM]
         )
 
         if len(workloads) == 0:
@@ -81,10 +80,8 @@ class SklearnExperiment(ProjectStep):  # type: ignore
             self.project, self.__binary, get_current_config_id(self.project)
         )
 
-        with local.cwd(self.project.builddir):
-            #run_cmd = workloads.command.as_plumbum(project=self.project)
+        with local.cwd(self.project.source_of_primary):
             run_cmd = workloads[0].command.as_plumbum(project=self.project)
-            print(run_cmd.formulate()) # DEBUGGING
             run_cmd(retcode=None)
             cp("scripts/io/mnist/cs_output/perf_measurements.json", perf_report_agg.full_path())
 
