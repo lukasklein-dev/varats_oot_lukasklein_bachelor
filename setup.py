@@ -19,8 +19,8 @@ setup(
             "sklearn_experiment_mnb = varats_oot_lukasklein_bachelor.projects.sklearn:SklearnProjectMNB",
         ],
         "varats.experiments": [
-            "SklearnExperiment = varats_oot_lukasklein_bachelor.experiments.sklearn_experiments:SklearnExperiment",
             "SklearnMeasuring = varats_oot_lukasklein_bachelor.experiments.sklearn_experiments:SklearnMeasuring",
+            #"SklearnExperiment = varats_oot_lukasklein_bachelor.experiments.sklearn_experiments:SklearnExperiment",
         ],
     },
 )
