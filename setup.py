@@ -20,7 +20,7 @@ setup(
         ],
         "varats.experiments": [
             "SklearnMeasuring = varats_oot_lukasklein_bachelor.experiments.sklearn_experiments:SklearnMeasuring",
-            #"SklearnExperiment = varats_oot_lukasklein_bachelor.experiments.sklearn_experiments:SklearnExperiment",
+            "SklearnExperiment = varats_oot_lukasklein_bachelor.experiments.sklearn_experiments:SklearnExperiment",
         ],
     },
 )
